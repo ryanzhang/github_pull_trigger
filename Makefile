@@ -23,6 +23,8 @@ clean:
 	rm -rf bin
 
 # Run tests (if applicable)
-test:
+fulltest:
 	go test -v ./...
 
+test:
+	go test -v -run TestCrdFile ./...
