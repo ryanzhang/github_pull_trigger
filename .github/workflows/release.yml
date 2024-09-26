@@ -22,7 +22,8 @@ jobs:
       run: |
         mkdir -p bin
         GOOS=linux go build -o ./bin/cr_viewer-linux main.go
-        GOOS=darwin go build -o ./bin/cr_viewer-darwin main.go
+        GOOS=darwin GOARCH=amd64 go build -o ./bin/cr_viewer-darwin-amd64 main.go
+        GOOS=darwin GOARCH=arm64 go build -o ./bin/cr_viewer-darwin-arm64 main.go
         GOOS=windows go build -o ./bin/cr_viewer-windows.exe main.go
 
     - name: Create Release
