@@ -78,7 +78,10 @@ func main() {
 		}
 	} else {
 		// Error if neither argument is provided.
-		fmt.Println("Usage: cr_viewer <crd_name> or cr_viewer -f <crd.yaml>")
+		fmt.Println(`Usage: cr_viewer <crd_name> or cr_viewer -f <crd.yaml>
+Examples:
+  cr_viewer configs.imageregistry.operator.openshift.io
+  cr_viewer -f test-crd.yaml`)
 		os.Exit(1)
 	}
 
