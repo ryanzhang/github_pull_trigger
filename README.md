@@ -1,6 +1,6 @@
-# cr_viewer
+# github_pull_trigger
 
-`cr_viewer` is a command-line tool written in Go that generates a sample Custom Resource (CR) specification based on a given CustomResourceDefinition (CRD) name or CRD YAML file. It helps in visualizing the structure and default values of the CR spec.
+`github_pull_trigger` is a command-line tool written in Go that generates a sample Custom Resource (CR) specification based on a given CustomResourceDefinition (CRD) name or CRD YAML file. It helps in visualizing the structure and default values of the CR spec.
 
 ## Features
 
@@ -9,7 +9,7 @@
 - Supports cross-platform usage (macOS, Linux, Windows).
 
 ## Usage:
-Usage: cr_viewer <crd_name> or cr_viewer -f <crd.yaml>
+Usage: github_pull_trigger <crd_name> or github_pull_trigger -f <crd.yaml>
 
 ## Prerequisites
 - Go 1.16 or later
@@ -18,7 +18,7 @@ Usage: cr_viewer <crd_name> or cr_viewer -f <crd.yaml>
 
 ## Example
 ```
-bin/cr_viewer configs.imageregistry.operator.openshift.io                                                                          
+bin/github_pull_trigger configs.imageregistry.operator.openshift.io                                                                          
 spec:
     affinity:
         nodeAffinity:
