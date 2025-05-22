@@ -1,1 +1,4 @@
 bin
+secret_env
+workdir
+go.sum

@@ -59,7 +59,7 @@ config.json:
     "FREQUENCY": 5 ,
     "PR_FETCH_LIMIT": 3,
     "LOG_LEVEL": "debug",
-    "STATE_FILE_PATH": "./"
+    "STATE_FILE_DIR": "./"
 
 }    
 GITHUB_PAT_TOKEN needs to load from env variable GITHUB_PAT_TOKEN
@@ -94,7 +94,7 @@ type Config struct {
 	Frequency        int    `json:"FREQUENCY"`
 	PRFetchLimit     int    `json:"PR_FETCH_LIMIT"`
 	LogLevel         string `json:"LOG_LEVEL"`
-	StateFilePath    string `json:"STATE_FILE_PATH"`
+	STATE_FILE_DIR    string `json:"STATE_FILE_DIR"`
 }
 
 // StateFile represents the persistent state
@@ -158,8 +158,8 @@ func main() {
 	initLogging()
 
 	// Initialize state file path
-	commitStateFile = filepath.Join(config.StateFilePath, fmt.Sprintf("%s-%s-commit-state.json", config.Owner, config.Branch))
-	prStateFile = filepath.Join(config.StateFilePath, fmt.Sprintf("%s-%s-pr-state.json", config.Owner, config.Branch))
+	commitStateFile = filepath.Join(config.STATE_FILE_DIR, fmt.Sprintf("%s-%s-commit-state.json", config.Owner, config.Branch))
+	prStateFile = filepath.Join(config.STATE_FILE_DIR, fmt.Sprintf("%s-%s-pr-state.json", config.Owner, config.Branch))
 
 	// Set up GitHub client
 	client := createGitHubClient(githubPAT)
@@ -176,6 +176,14 @@ func main() {
 	log.Info("Starting GitHub commit & PR monitor")
 
 	// Initial state check
+    if _, err := os.Stat(commitStateFile); os.IsNotExist(err) {
+        // Silent initial state setup
+        log.Info("No state file found - performing initial silent setup")
+        if err := silentInitialSetup(ctx, client); err != nil {
+            log.Errorf("Initial silent setup failed: %v", err)
+            os.Exit(1)
+        }
+    }
 	if err := checkForUpdates(ctx, client); err != nil {
 		log.Errorf("Initial check failed: %v", err)
 	}
@@ -221,8 +229,8 @@ func loadConfig(filename string) error {
 	if config.Frequency == 0 {
 		config.Frequency = 5
 	}
-	if config.StateFilePath == "" {
-		config.StateFilePath = "."
+	if config.STATE_FILE_DIR == "" {
+		config.STATE_FILE_DIR = "."
 	}
 
 	return nil
@@ -243,6 +251,45 @@ func setupSignalHandling(cancel context.CancelFunc) {
 		log.Infof("Received signal: %v", sig)
 		cancel()
 	}()
+}
+// Add this new function for silent initialization
+func silentInitialSetup(ctx context.Context, client *github.Client) error {
+    // Get latest commit without triggering events
+    commit, _, err := getLatestCommit(ctx, client)
+    if err != nil {
+        return fmt.Errorf("getting initial commit: %w", err)
+    }
+    // Create initial state file
+    initialCommitState := CommitStateFile{
+        LatestCommit:        commit,
+        LatestFetchTimestamp: time.Now().UTC().Format(time.RFC3339),
+    }
+
+
+    if err := saveCommitState(&initialCommitState); err != nil {
+        return fmt.Errorf("saving initial state: %w", err)
+    }
+
+    // Get latest PRs without triggering events
+    prs, err := getLatestPRs(ctx, client)
+    if err != nil {
+        return fmt.Errorf("getting initial PRs: %w", err)
+    }
+
+
+    // Create initial state file
+    initialPRState := PRStateFile{
+        PRs:                 prs,
+        LatestFetchTimestamp: time.Now().UTC().Format(time.RFC3339),
+    }
+
+
+    if err := savePRState(&initialPRState); err != nil {
+        return fmt.Errorf("saving initial state: %w", err)
+    }
+
+    log.Info("Initial state file created successfully")
+    return nil
 }
 
 func checkForUpdates(ctx context.Context, client *github.Client) error {
@@ -314,6 +361,12 @@ func saveCommitState(state *CommitStateFile) error {
 	if err != nil {
 		return fmt.Errorf("marshaling state: %w", err)
 	}
+
+    // Ensure the directory exists first
+    dir := filepath.Dir(commitStateFile)
+    if err := os.MkdirAll(dir, 0755); err != nil {
+        return fmt.Errorf("creating directory: %w", err)
+    }
 
 	if err := ioutil.WriteFile(commitStateFile, data, 0644); err != nil {
 		return fmt.Errorf("writing state file: %w", err)

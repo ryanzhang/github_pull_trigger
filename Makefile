@@ -1,10 +1,25 @@
-# Makefile for cr_viewer project
+# Makefile for github_pull_trigger project
 
-BINARY_NAME=bin/cr_viewer
+BINARY_NAME=bin/github_pull_trigger
+IMAGE_NAME = quay.io/rzhang/github-pull-trigger
+IMAGE_TAG = v0.2
 
-.PHONY: all clean deps build test
+
+.PHONY: all clean deps build image
 
 all: build
+
+#Build the image
+image:
+	podman build  --no-cache  --platform linux/amd64 -t $(IMAGE_NAME)-amd64:$(IMAGE_TAG) .
+	podman build  --no-cache  --platform linux/arm64 -t $(IMAGE_NAME)-arm64:$(IMAGE_TAG) .
+
+push:
+	podman tag $(IMAGE_NAME)-amd64:$(IMAGE_TAG) $(IMAGE_NAME):$(IMAGE_TAG)
+	podman push $(IMAGE_NAME):$(IMAGE_TAG) --tls-verify=false
+
+test:
+
 
 # Build the Go binary
 build:
