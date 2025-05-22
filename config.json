@@ -1,0 +1,10 @@
+{
+    "OWNER": "ryanzhang",
+    "REPO": "aiml-usecase",
+    "BRANCH": "main",
+    "EVENT_LISTENER_URL": "https://rzhang.requestcatcher.com/test",
+    "FREQUENCY": 5,
+    "PR_FETCH_LIMIT": 3,
+    "LOG_LEVEL": "debug",
+    "STATE_FILE_DIR": "./"
+}
